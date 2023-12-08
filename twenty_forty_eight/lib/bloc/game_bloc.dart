@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import '../model/Tile.dart';
@@ -7,6 +9,7 @@ part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc() : super(GameInitial() ) {
+    on<GridInitialised>(_gridInitialised);
     on<RestartGameEvent>(_restartGame);
     on<LostGameEvent>(_lostGame);
     on<MoveUpEvent>(_moveTileUp);
@@ -15,8 +18,21 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<MoveRightEvent>(_moveTileRight);
   }
 
+  void _gridInitialised(GridInitialised event,Emitter<GameState> emit) {
+    emit(GameUpdate(grid: event.grid, score: 0, bestScore: state.bestScore,lost: false,init: true));
+  }
+
   void _restartGame(RestartGameEvent event,Emitter<GameState> emit) {
-    emit(GameUpdate(grid: const [], score: 0, bestScore: state.bestScore,lost: false));
+    List<List<Tile> > grid = [];
+    for(int i = 0; i < 4;i++) {
+      List<Tile> c = [];
+      for(int j = 0; j < 4;j++) {
+        c.add(Tile() );
+      }
+      grid.add(c);
+    }
+
+    emit(GameUpdate(grid: grid, score: 0, bestScore: state.bestScore,lost: false,init: false));
   }
 
   void _lostGame(LostGameEvent event,Emitter<GameState> emit) {
@@ -26,7 +42,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       bestScore = state.score;
     }
 
-    emit(GameUpdate(grid: const [], score: state.score, bestScore: bestScore,lost: true));
+    emit(GameUpdate(grid: const [], score: state.score, bestScore: bestScore,lost: true,init: state.init));
 
   }
 
@@ -51,7 +67,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       g[i][column] = col[i];
     }
 
-    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost));
+    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost,init: state.init));
   }
 
   void _moveTileDown(MoveDownEvent event,Emitter<GameState> emit) {
@@ -75,7 +91,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       g[i][column] = col[i];
     }
 
-    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost));
+    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost,init: state.init));
   }
 
   void _moveTileLeft(MoveLeftEvent event,Emitter<GameState> emit) {
@@ -92,7 +108,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     g[row] = r;
 
-    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost));
+    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost,init: state.init) );
   }
 
   void _moveTileRight(MoveRightEvent event,Emitter<GameState> emit) {
@@ -109,7 +125,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     g[row] = r.reversed.toList();
 
-    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost));
+    emit(GameUpdate(grid: g, score: score, bestScore: state.bestScore,lost: state.lost,init: state.init) );
   }
 
   (List<Tile>,int) _mergeRow(List<Tile> row,int score) {

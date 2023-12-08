@@ -5,8 +5,10 @@ class Tile {
 
   Tile({this.value = 0});
 
-  dynamic widget() {
+  dynamic widget(double width,double height) {
     return Container(
+      width: width,
+      height: height,
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -16,7 +18,7 @@ class Tile {
       child: Center(
         child: Text(
           value == 0 ? '' : value.toString(),
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -46,6 +48,8 @@ class Tile {
         return Colors.lightGreenAccent;
       case 1024:
         return Colors.lightGreen;
+      case 2048:
+        return Colors.green;
       default:
         return Colors.grey;
     }

@@ -7,6 +7,12 @@ class RestartGameEvent extends GameEvent {}
 
 class LostGameEvent extends GameEvent {}
 
+class GridInitialised extends GameEvent {
+  final List<List<Tile> > grid;
+
+  GridInitialised({required this.grid});
+}
+
 class MoveLeftEvent extends GameEvent {
   final int row;
 
