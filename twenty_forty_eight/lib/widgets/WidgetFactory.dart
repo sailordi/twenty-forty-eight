@@ -4,46 +4,36 @@ import 'package:twenty_forty_eight/model/Tile.dart';
 class WidgetFactory {
 
   static dynamic logo() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 10),
-        Text("2048",style: TextStyle(fontSize: 90,fontWeight: FontWeight.bold) ),
-      ]
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '2048',
+            style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 52.0),
+          )
+        ],
+      ),
     );
   }
 
   static dynamic scoreBord(int s,int bS) {
-    return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(255,187, 173, 160)
-              ),
-              child: Column(
-                  children: [
-                    const Text("Score: ",style: TextStyle(fontSize: 28,fontWeight: FontWeight.bold) ),
-                    Text('$s',style: const TextStyle(fontSize: 28) )
-                  ]
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(255,187, 173, 160)
-              ),
-              child: Column(
-                children: [
-                  const Text("Best score: ",style: TextStyle(fontSize: 28,fontWeight: FontWeight.bold) ),
-                  Text('$bS',style: const TextStyle(fontSize: 28) )
-                ]
-              )
-            ),
-          ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _score('Score', s.toString() ),
+        const SizedBox(
+          width: 8.0,
         ),
+        _score(
+            'Best',
+            bS.toString(),
+            pad: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0) ),
+      ],
     );
   }
 
@@ -67,32 +57,43 @@ class WidgetFactory {
           foregroundColor: Colors.white,
           ),
           onPressed: f,
-          child: const Text("New game")
+          child: const Text("New")
         ),
         const SizedBox(width: 10)
       ]
     );
-      ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255,143, 122, 102),
-          foregroundColor: Colors.white,
-        ),
-        onPressed: f,
-        child: const Text("New game")
-      );
   }
 
   static dynamic emptyBoard(double width,double height) {
-    return SizedBox(
-      height: height,
-      width: width,
-      child: Container(
+    return Container(
+        height: height,
+        width: width,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255,187,173,160),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6.0),
           shape: BoxShape.rectangle,
         ),
-      ),
+    );
+
+  }
+
+  static dynamic _score(String label,String score,{EdgeInsets? pad}) {
+    return Container(
+      padding: (pad != null) ? pad! :
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      decoration: BoxDecoration(
+          color: const Color.fromARGB(255,187, 173, 160), borderRadius: BorderRadius.circular(8.0)),
+      child: Column(children: [
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(fontSize: 18.0, color: Colors.white),
+        ),
+        Text(
+          score,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18.0),
+        )
+      ]),
     );
   }
 

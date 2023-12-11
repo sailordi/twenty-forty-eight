@@ -7,32 +7,17 @@ class RestartGameEvent extends GameEvent {}
 
 class LostGameEvent extends GameEvent {}
 
+class WonGameEvent extends GameEvent {}
+
 class GridInitialised extends GameEvent {
-  final List<List<Tile> > grid;
+  final Grid grid;
 
   GridInitialised({required this.grid});
 }
 
-class MoveLeftEvent extends GameEvent {
-  final int row;
+class UpdateGame extends GameEvent {
+  final Grid grid;
+  final int score;
 
-  MoveLeftEvent({required this.row});
-}
-
-class MoveRightEvent extends GameEvent {
-  final int row;
-
-  MoveRightEvent({required this.row});
-}
-
-class MoveUpEvent extends GameEvent {
-  final int column;
-
-  MoveUpEvent({required this.column});
-}
-
-class MoveDownEvent extends GameEvent {
-  final int column;
-
-  MoveDownEvent({required this.column});
+  UpdateGame({required this.score,required this.grid});
 }

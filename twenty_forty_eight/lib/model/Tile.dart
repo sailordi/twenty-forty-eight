@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:twenty_forty_eight/model/GameInfo.dart';
+import 'package:uuid/uuid.dart';
 
 class Tile {
+  late final String id;
   int value;
+  int index;
+  int? nextIndex;
 
-  Tile({this.value = 0});
+  Tile({String i = "",required this.index,this.value = 0,this.nextIndex}) {
+    if(i.isNotEmpty) {
+      id = i;
+    } else {
+      id = const Uuid().v4();
+    }
+
+  }
+
+  //Calculate the current top position based on the index
+  double getTop(double size) {
+    var i = ((index + 1) / GameInfo.scale).ceil();
+    return ((i - 1) * size) + (12.0 * i);
+  }
+
+  //Calculate the current left position based on the index
+  double getLeft(double size) {
+    var i = (index - (((index + 1) / GameInfo.scale).ceil() * GameInfo.scale - GameInfo.scale));
+    return (i * size) + (12.0 * (i + 1));
+  }
 
   dynamic widget(double width,double height) {
     return Container(
@@ -56,4 +80,12 @@ class Tile {
 
   }
 
+  Tile copyWith({String? id, int? value, int? index, int? nextIndex}) {
+    String i = (id == null) ? this.id : id!;
+    int v = (value == null) ? this.value : value!;
+    int ind = (index == null) ? this.index : index!;
+    int? nextInd = (nextIndex == null) ? this.nextIndex : nextIndex;
+
+    return Tile(i: i,value: v,index: ind,nextIndex: nextInd);
+  }
 }
