@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:twenty_forty_eight/bloc/game_bloc.dart';
 import 'package:twenty_forty_eight/widgets/WidgetFactory.dart';
-import 'package:twenty_forty_eight/model/GameInfo.dart';
+import 'package:twenty_forty_eight/model/gameInfo.dart';
 import 'package:twenty_forty_eight/model/Grid.dart';
-import 'package:twenty_forty_eight/model/Tile.dart';
+import 'package:twenty_forty_eight/model/tile.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
