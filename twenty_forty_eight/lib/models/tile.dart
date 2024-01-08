@@ -6,11 +6,11 @@ part 'tile.g.dart'; // Hive generates this file
 @HiveType(typeId: 0)
 class Tile {
   @HiveField(0)
-  final int value;
+  int value;
   @HiveField(1)
-  final int x;
+  int x;
   @HiveField(2)
-  final int y;
+  int y;
 
   Tile(this.value,this.x,this.y);
 

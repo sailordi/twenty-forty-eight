@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f87bd485-99b4-4a13-95f1-b870e87f980c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/twenty_forty_eight/lib/models/tile.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twenty_forty_eight/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/twenty_forty_eight/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twenty_forty_eight/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/twenty_forty_eight/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
