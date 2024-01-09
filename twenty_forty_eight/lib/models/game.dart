@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:hive/hive.dart';
 import './tile.dart';
 
-part 'bord.g.dart'; // Hive generates this file
+part 'game.g.dart'; // Hive generates this file
 
-enum GameState { playing, won, lost }
+enum GameState {playing,won,lost }
 const String boxName = "gameBox";
 const int maxRandomTiles = 3;
 
@@ -20,7 +20,7 @@ class Game {
   int highScore = 0;
 
   @HiveField(3)
-  GameState gameState = GameState.playing;
+  int gameState = GameState.playing.index;
 
   Game();
 
@@ -30,7 +30,7 @@ class Game {
       box.put('grid', grid);
       box.put('score', score);
       box.put('highScore', highScore);
-      box.put('gameState', gameState.index);
+      box.put('gameState', gameState);
   }
 
   void load() {
@@ -39,9 +39,7 @@ class Game {
     grid = box.get('grid', defaultValue:[]);
     score = box.get('score', defaultValue: 0);
     highScore = box.get('highScore', defaultValue: 0);
-    int gameStateIndex = box.get('gameState', defaultValue: GameState.playing.index);
-
-    gameState = _stateFromIndex(gameStateIndex);
+    gameState = box.get('gameState', defaultValue: GameState.playing.index);
 
     if(grid.isEmpty == true) {
       var rng = Random();
@@ -66,6 +64,31 @@ class Game {
 
   }
 
+  void newGame() {
+    grid = [];
+    score = 0;
+    gameState = GameState.playing.index;
+
+    var rng = Random();
+
+    for(int i = 0; i < 4; i++) {
+      List<Tile> l = [];
+      for(int j = 0; j < 4; j++) {
+        l.add(Tile(0,i,j) );
+      }
+      grid.add(l);
+    }
+
+    int times = rng.nextInt(maxRandomTiles)+1;
+    List<(int,int)> indexes = [];
+
+    for(int i = 0; i < times; i++) {
+      Tile t = randomTile(indexes);
+      grid[t.x][t.y].value = t.value;
+    }
+
+  }
+
   Tile randomTile(List<(int,int)> indexes) {
     var i = 0;
     var j = 0;
@@ -84,8 +107,8 @@ class Game {
     return Tile(2,i,j);
   }
 
-  GameState _stateFromIndex(int index) {
-    switch(index) {
+  GameState state() {
+    switch(gameState) {
       case 0: return GameState.playing;
       case 1: return GameState.won;
       default: return GameState.lost;
