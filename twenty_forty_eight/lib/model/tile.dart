@@ -102,4 +102,16 @@ class Tile {
       return t;
   }
 
+  Map<String, dynamic> toJson() => {
+    'x': x,
+    'y': y,
+    'value': value,
+  };
+
+  static Tile fromJson(Map<String, dynamic> json) => Tile(
+    json['x'],
+    json['y'],
+    json['value'],
+  );
+
 }
