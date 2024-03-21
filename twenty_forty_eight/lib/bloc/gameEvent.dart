@@ -18,11 +18,11 @@ class WonGame extends GameEvent {
 
 }
 
-class Initialised extends GameEvent {
+class Load extends GameEvent {
   final List<List<Tile> > grid;
   final int score;
   final int bestScore;
   final GameStatus status;
 
-  Initialised({required this.grid,required this.score,required this.bestScore,required this.status});
+  Load({required this.grid,required this.score,required this.bestScore,required this.status});
 }

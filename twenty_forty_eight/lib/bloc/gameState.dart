@@ -4,6 +4,7 @@ enum GameStatus{playing,won,lost}
 
 class GameState {
   late List<List<Tile> > grid;
+  List<Tile> toAdd = [];
   final int score;
   final int bestScore;
   final GameStatus status;

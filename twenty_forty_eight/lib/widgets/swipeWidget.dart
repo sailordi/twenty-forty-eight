@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-class Swiper extends StatelessWidget {
+enum SwipeDirection { up, down, left, right }
+
+class SwipeWidget extends StatelessWidget {
   final Function() up;
   final Function() down;
   final Function() left;
   final Function() right;
   final Widget child;
 
-  const Swiper({required Key key,required this.up,required this.down,required this.left,required this.right,required this.child}) : super(key: key);
+  const SwipeWidget({super.key,required this.up,required this.down,required this.left,required this.right,required this.child});
 
   @override
   Widget build(BuildContext context) => GestureDetector(

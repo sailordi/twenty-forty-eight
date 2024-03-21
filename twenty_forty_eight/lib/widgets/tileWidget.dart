@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../model/gameInfo.dart';
-import '../model/tile.dart';
+import 'package:twenty_forty_eight/model/gameInfo.dart';
+import 'package:twenty_forty_eight/model/tile.dart';
 
 class TileWidget extends StatelessWidget {
   late double x;
@@ -10,15 +10,15 @@ class TileWidget extends StatelessWidget {
   late Color color;
   final Widget? child;
 
-  TileWidget(Tile t,GameInfo i,bool animated,{required Key key,this.child}) : super(key: key) {
+  TileWidget(Tile t,GameInfo i,bool animated,{super.key,this.child}) {
     if(animated == false) {
       x = i.tileSize * t.x;
       y = i.tileSize * t.y;
-      size = i.tileSize - i.borderSize * 2;
+      size = i.tileSize - GameInfo.borderSize * 2;
     } else {
       x = i.tileSize * t.animatedX.value;
       y = i.tileSize * t.animatedY.value;
-      size = (i.tileSize - i.borderSize * 2) * t.size.value;
+      size = (i.tileSize - GameInfo.borderSize * 2) * t.size.value;
     }
 
     containerSize = i.tileSize;
@@ -47,7 +47,7 @@ class TileWidget extends StatelessWidget {
 class TileNumber extends StatelessWidget {
   final int val;
 
-  const TileNumber(this.val, {required Key key}) : super(key: key);
+  const TileNumber(this.val, {super.key});
 
   @override
   Widget build(BuildContext context) => Text("$val",

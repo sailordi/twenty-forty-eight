@@ -6,7 +6,7 @@ class BigButton extends StatelessWidget {
   final Color color;
   final void Function() onPressed;
 
-  const BigButton({required Key key, required this.label, required this.color, required this.onPressed}) : super(key: key);
+  const BigButton({super.key, required this.label, required this.color, required this.onPressed});
 
   @override
   Widget build(BuildContext context) => Container(

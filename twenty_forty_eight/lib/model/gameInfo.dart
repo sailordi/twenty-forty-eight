@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 class GameInfo {
-  final double spaceBetweenTiles = 10;
   final int scale = 4;
 
-  double contentPadding = 16;
-  double borderSize = 4;
+  static double contentPadding = 16;
+  static double borderSize = 4;
   late double gridSize;
   late double tileSize;
 
@@ -13,6 +12,8 @@ class GameInfo {
   static const Color darkBrown = Color.fromARGB(255,187,173,160);
   static const Color tan = Color.fromARGB(255,238,228,218);
   static const Color gray = Color.fromARGB(255,119,110,101);
+  static const Color orange = Color.fromARGB(255,245,149,99);
+  static const Color numColor = Color.fromARGB(255, 119, 110, 101);
   static const double cornerRadius = 8.0;
 
   GameInfo(BuildContext context) {
