@@ -8,9 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:twenty_forty_eight/model/tile.dart';
 import 'package:twenty_forty_eight/model/gameInfo.dart';
 import 'package:twenty_forty_eight/bloc/gameBloc.dart';
-import 'package:twenty_forty_eight/widgets/bigButton.dart';
 import 'package:twenty_forty_eight/widgets/swipeWidget.dart';
 import 'package:twenty_forty_eight/widgets/tileWidget.dart';
+import 'package:twenty_forty_eight/widgets/widgetFactory.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -23,6 +23,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
   late AnimationController controller;
   late GameBloc b;
   late GameInfo info;
+  bool init = false;
 
   late Timer aiTimer;
 
@@ -31,25 +32,32 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
-    b = BlocProvider.of<GameBloc>(context);
-    info = GameInfo(context);
-
     controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
-    controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() {
-          for (var e in b.state.toAdd) {
-            b.state.grid[e.y][e.x].value = e.value;
-          }
-          for (var t in b.gridTiles) {
-            t.resetAnimations();
-          }
-          b.state.toAdd.clear();
-        });
-      }
-    });
 
-    loadGameState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        info = GameInfo(context);
+        b = BlocProvider.of<GameBloc>(context);
+
+        controller.addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            setState(() {
+              for (var e in b.state.toAdd) {
+                b.state.grid[e.y][e.x].value = e.value;
+              }
+              for (var t in b.gridTiles) {
+                t.resetAnimations();
+              }
+              b.state.toAdd.clear();
+            });
+          }
+        });
+      });
+
+      _loadGameState();
+
+      init = true;
+    });
   }
 
   @override
@@ -61,22 +69,22 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      saveGameState(b.state);
+      _saveGameState(b.state);
     }
 
   }
 
-  void saveGameState(GameState gameState) async {
+  void _saveGameState(GameState gameState) async {
     final prefs = await SharedPreferences.getInstance();
     String gameStateJson = json.encode(gameState.toJson());
 
       await prefs.setString('gameState', gameStateJson);
   }
 
-  void loadGameState() async {
+  void _loadGameState() async {
     final prefs = await SharedPreferences.getInstance();
 
-    String? gameStateJson = prefs.getString('gameState');
+    String? gameStateJson; //= prefs.getString('gameState');
 
     if(gameStateJson != null) {
       Map<String, dynamic> jsonDecode = json.decode(gameStateJson);
@@ -94,6 +102,24 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
         b.add(Load(grid: grid,score: score,bestScore:bestScore,status:status) );
       });
 
+    } else {
+      final generator = Random();
+      int tiles = generator.nextInt(3);
+
+      for(int i = 0; i < tiles; i++) {
+        int i,j;
+
+        do {
+          i = generator.nextInt(4);
+          j = generator.nextInt(4);
+        } while (b.state.grid[i][j].value != 0);
+
+        int value = generator.nextDouble() < 0.1 ? 4 : 2;
+
+        b.state.grid[i][j].value = value;
+        b.state.grid[i][j].resetAnimations();
+      }
+
     }
 
   }
@@ -102,6 +128,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
     setState(() {
       b.add(RestartGame() );
     });
+
 
   }
 
@@ -134,39 +161,64 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
     });
   }
 
+  List<Widget> _stackItems() {
+    List<Widget> ret = [];
+
+      ret.addAll(b.gridTiles.map((tile) => TileWidget(tile,info,false)) );
+      ret.addAll(b.allTiles.map( (tile) => AnimatedBuilder(
+          animation: controller,
+          builder: (context, child) => tile.animatedValue.value == 0
+              ? const SizedBox()
+              : TileWidget(tile,info,true,
+              child: Center(child: TileNumber(tile.animatedValue.value) ) ) ) ) );
+
+      return ret;
+  }
+
+  dynamic _body() {
+    if(!init) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Padding(
+        padding: EdgeInsets.all(GameInfo.contentPadding),
+        child: Column(
+            children: [
+            Stack(
+              children: [
+                WidgetFactory.logo(),
+                WidgetFactory.scoreBord(b.state.score,b.state.bestScore)
+              ],
+            ),
+            Stack(
+              children: [
+                WidgetFactory.instructions(),
+                WidgetFactory.newGame(() { _newGame(b.state); })
+              ],
+            ),
+            const SizedBox(height: 50),
+            SwipeWidget(
+                up: () => merge(SwipeDirection.up),
+                down: () => merge(SwipeDirection.down),
+                left: () => merge(SwipeDirection.left),
+                right: () => merge(SwipeDirection.right),
+                child: Container(
+                    height: info.gridSize,
+                    width: info.gridSize,
+                    padding: EdgeInsets.all(GameInfo.borderSize),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(GameInfo.cornerRadius), color: GameInfo.darkBrown),
+                    child: Stack(
+                      children: _stackItems(),
+                    ))),
+          ]
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<Widget> stackItems = [];
-    stackItems.addAll(b.gridTiles.map((tile) => TileWidget(tile,info,false)) );
-    stackItems.addAll(b.allTiles.map( (tile) => AnimatedBuilder(
-        animation: controller,
-        builder: (context, child) => tile.animatedValue.value == 0
-            ? const SizedBox()
-            : TileWidget(tile,info,true,
-            child: Center(child: TileNumber(tile.animatedValue.value) ) ) ) ) );
-
     return Scaffold(
         backgroundColor: GameInfo.tan,
-        body: Padding(
-            padding: EdgeInsets.all(GameInfo.contentPadding),
-            child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              SwipeWidget(
-                  up: () => merge(SwipeDirection.up),
-                  down: () => merge(SwipeDirection.down),
-                  left: () => merge(SwipeDirection.left),
-                  right: () => merge(SwipeDirection.right),
-                  child: Container(
-                      height: info.gridSize,
-                      width: info.gridSize,
-                      padding: EdgeInsets.all(GameInfo.borderSize),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(GameInfo.cornerRadius), color: GameInfo.darkBrown),
-                      child: Stack(
-                        children: stackItems,
-                      ))),
-              BigButton(label: "Restart", color: GameInfo.orange, onPressed: () {_newGame(b.state); } ),
-            ]
-            )
-        )
+        body: _body(),
     );
   }
 

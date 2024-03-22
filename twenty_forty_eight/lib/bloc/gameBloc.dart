@@ -21,6 +21,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   void addNewTiles(List<int> values,AnimationController controller) {
     List<Tile> empty = gridTiles.where((t) => t.value == 0).toList();
     empty.shuffle();
+
     for (int i = 0; i < values.length; i++) {
       state.toAdd.add(Tile(empty[i].x, empty[i].y, values[i])..appear(controller) );
     }
