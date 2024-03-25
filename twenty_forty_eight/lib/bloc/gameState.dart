@@ -33,7 +33,7 @@ class GameState {
 
 final class Initial extends GameState {
   Initial(): super(grid:[], score: 0,bestScore: 0,status: GameStatus.playing) {
-    grid = List.generate(4, (y) => List.generate(4, (x) => Tile(x, y, 0) ) );
+    grid = List.generate(4, (y) => List.generate(4, (x) => Tile(x, y, value: 0) ) );
   }
 
 }

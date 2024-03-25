@@ -78,4 +78,19 @@ class WidgetFactory {
         ]
     );
   }
+
+  static dynamic emptyBoard(double width,double height) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Container(
+        decoration: BoxDecoration(
+          color: GameInfo.darkBrown,
+          borderRadius: BorderRadius.circular(12),
+          shape: BoxShape.rectangle,
+        ),
+      ),
+    );
+  }
+
 }

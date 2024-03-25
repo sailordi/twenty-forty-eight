@@ -2,28 +2,14 @@ import 'package:flutter/material.dart';
 import 'gameInfo.dart';
 
 class Tile {
-  final int x;
-  final int y;
-  final double moveInterval = .5;
-
+  int x;
+  int y;
+  int? nextX;
+  int? nextY;
   int value;
+  bool merged = false;
 
-  late Animation<double> animatedX;
-  late Animation<double> animatedY;
-  late Animation<double> size;
-
-  late Animation<int> animatedValue;
-
-  Tile(this.x,this.y,[this.value = 0]) {
-    resetAnimations();
-  }
-
-  void resetAnimations() {
-    animatedX = AlwaysStoppedAnimation(x.toDouble());
-    animatedY = AlwaysStoppedAnimation(y.toDouble());
-    size = const AlwaysStoppedAnimation(1.0);
-    animatedValue = AlwaysStoppedAnimation(value);
-  }
+  Tile(this.x,this.y,{this.nextX, this.nextY, this.merged = false,this.value = 0});
 
   static int maxValue() { return 2048; }
 
@@ -59,7 +45,7 @@ class Tile {
 
   }
 
-  static Color textColor(int value) {
+  Color textColor() {
     switch (value) {
       case 0:
         return GameInfo.lightBrown;
@@ -72,46 +58,55 @@ class Tile {
     }
   }
 
-  void moveTo(Animation<double> parent, int x, int y) {
-    Animation<double> curved = CurvedAnimation(parent: parent, curve: Interval(0.0, moveInterval));
-    animatedX = Tween(begin: this.x.toDouble(), end: x.toDouble()).animate(curved);
-    animatedY = Tween(begin: this.y.toDouble(), end: y.toDouble()).animate(curved);
-  }
-
-  void bounce(Animation<double> parent) {
-    size = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.2), weight: 1.0),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 1.0),
-    ]).animate(CurvedAnimation(parent: parent, curve: Interval(moveInterval, 1.0)));
-  }
-
-  void changeNumber(Animation<double> parent, int newValue) {
-    animatedValue = TweenSequence([
-      TweenSequenceItem(tween: ConstantTween(value), weight: .01),
-      TweenSequenceItem(tween: ConstantTween(newValue), weight: .99),
-    ]).animate(CurvedAnimation(parent: parent, curve: Interval(moveInterval, 1.0)));
-  }
-
-  void appear(Animation<double> parent) {
-    size = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: parent, curve: Interval(moveInterval, 1.0)));
-  }
-
   Tile copy() {
-    Tile t = Tile(x, y, value);
+    Tile t = Tile(x, y, nextX: nextX,nextY: nextY,merged: merged,value: value);
 
       return t;
+  }
+
+  Tile copyWith({int? value,int? x,int? y,int? nextX,int? nextY, bool? merged}) =>
+      Tile(x ?? this.x,
+          y ?? this.y,
+          nextX: nextX ?? this.nextX,
+          nextY: nextY ?? this.nextY,
+          merged: merged ?? this.merged,
+          value: value ?? this.value);
+
+  dynamic widget(double width,double height) {
+    return Container(
+      width: width,
+      height: height,
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: tileColor(),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          value.toString(),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   Map<String, dynamic> toJson() => {
     'x': x,
     'y': y,
+    'nextX': nextX,
+    'nextY': nextY,
+    'merged': merged,
     'value': value,
   };
 
   static Tile fromJson(Map<String, dynamic> json) => Tile(
-    json['x'],
-    json['y'],
-    json['value'],
+    json['x'] as int,
+    json['y'] as int,
+    nextX: json['nextX'] as int?,
+    nextY: json['nextY'] as int?,
+    merged: json['merged'] as bool? ?? false,
+    value: json['value'] as int,
   );
 
 }
