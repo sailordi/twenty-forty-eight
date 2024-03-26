@@ -5,8 +5,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:twenty_forty_eight/model/tile.dart';
-import 'package:twenty_forty_eight/model/gameInfo.dart';
+import 'package:twenty_forty_eight/models/tile.dart';
+import 'package:twenty_forty_eight/models/gameInfo.dart';
 import 'package:twenty_forty_eight/bloc/gameBloc.dart';
 import 'package:twenty_forty_eight/widgets/swipeWidget.dart';
 import 'package:twenty_forty_eight/widgets/tileWidget.dart';
@@ -20,31 +20,13 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleTickerProviderStateMixin {
-  late GameBloc b;
   late GameInfo info;
-  bool init = false;
-
-  late Timer aiTimer;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        info = GameInfo(context);
-        b = BlocProvider.of<GameBloc>(context);
-      });
-
-      _loadGameState();
-
-      setState(() {
-        init = true;
-      });
-
-    });
   }
 
   @override
@@ -56,7 +38,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      _saveGameState(b.state);
+      _saveGameState(provider(context).state);
     }
 
   }
@@ -68,40 +50,44 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
       await prefs.setString('gameState',"");//gameStateJson);
   }
 
-  void _loadGameState() async {
+  Future<(GameState,bool)> _loadGameState() async {
     final prefs = await SharedPreferences.getInstance();
+    GameState ret = GameState(grid: [],score: 0,bestScore: 0,status: GameStatus.init);
+    bool loaded = false;
 
     String? gameStateJson ;//= prefs.getString('gameState');
 
     if(gameStateJson != null) {
+      loaded = true;
       Map<String, dynamic> jsonDecode = json.decode(gameStateJson);
 
-      List<List<Tile> > grid = (jsonDecode['grid'] as List)
-          .map((row) => (row as List)
-          .map((tileJson) => Tile.fromJson(tileJson as Map<String, dynamic>))
-          .toList())
-          .toList();
-      int score = jsonDecode['score'] as int;
-      int bestScore = jsonDecode['score'] as int;
-      GameStatus status = GameStatus.values[jsonDecode['status'] as int];
+      ret = GameState.fromJson(jsonDecode);
+    }
 
-      b.add(Load(grid: grid,score: score,bestScore:bestScore,status:status) );
-    } else {
-      _newGame();
+    return (ret,loaded);
+  }
+
+  void _initGrid(GameBloc bloc,GameState state) async {
+    if(state.status != GameStatus.init) {
+      return;
+    }
+    (GameState,bool) data = await _loadGameState();
+
+    if(data.$2 == true) {
+      bloc.add(Load(grid: data.$1.grid, score: data.$1.score, bestScore: data.$1.bestScore, status: data.$1.status) );
+    }
+    else {
+      bloc.add(RestartGame() );
     }
 
   }
 
-  void _newGame() {
-    b.add(RestartGame() );
+  void _newGame(BuildContext context) {
+    provider(context).add(RestartGame() );
+  }
 
-    final generator = Random();
-    int tiles = generator.nextInt(4) + 3;
-
-    for(int i = 0; i < tiles; i++) {
-      b.randomTile();
-    }
-
+  GameBloc provider(BuildContext context) {
+    return BlocProvider.of<GameBloc>(context);
   }
 
   void merge(SwipeDirection direction) {
@@ -109,37 +95,44 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleT
 
   @override
   Widget build(BuildContext context) {
+    info = GameInfo(context);
+
     return Scaffold(
         backgroundColor: GameInfo.tan,
-        body: Column(
-          children: [
-            Stack(
-              children: [
-                WidgetFactory.logo(),
-                WidgetFactory.scoreBord(b.state.score,b.state.bestScore)
-              ],
-            ),
-            Stack(
-              children: [
-                WidgetFactory.instructions(),
-                WidgetFactory.newGame(() { _newGame(); })
-              ],
-            ),
-            const SizedBox(height: 5),
-            Stack(
-            children: [
-              WidgetFactory.emptyBoard(info.width,info.height),
-              for (int i = 0; i < b.state.grid.length; ++i)
-                for (int j = 0; j < b.state.grid[i].length; ++j)
-                  Positioned(
-                      top: (i + 1) * GameInfo.spaceBetweenTiles + i * info.tileSize-6,
-                      left: (j + 1) * GameInfo.spaceBetweenTiles + j * info.tileSize-6,
-                      child: b.state.grid[i][j].widget(info.tileSize,info.tileSize)
+        body: BlocBuilder<GameBloc, GameState>(
+            builder: (context, state) {
+              _initGrid(provider(context),state);
+              return   Column(
+                children: [
+                  Stack(
+                    children: [
+                      WidgetFactory.logo(),
+                      WidgetFactory.scoreBord(state.score,state.bestScore)
+                    ],
                   ),
-            ]
-            )
-          ],
-        ),
+                  Stack(
+                    children: [
+                      WidgetFactory.instructions(),
+                      WidgetFactory.newGame(() { _newGame(context); })
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Stack(
+                      children: [
+                        WidgetFactory.emptyBoard(info.width,info.height),
+                        for (int i = 0; i < state.grid.length; ++i)
+                          for (int j = 0; j < state.grid[i].length; ++j)
+                            Positioned(
+                                top: (i + 1) * GameInfo.spaceBetweenTiles + i * info.tileSize-6,
+                                left: (j + 1) * GameInfo.spaceBetweenTiles + j * info.tileSize-6,
+                                child: state.grid[i][j].widget(info.tileSize,info.tileSize)
+                            ),
+                      ]
+                  )
+                ],
+              );
+            }
+        )
     );
   }
 

@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:twenty_forty_eight/bloc/gameBloc.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'adapter/gameDataAdapter.dart';
 import 'package:twenty_forty_eight/view/home/homeView.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //Make sure Hive is initialized first and only after register the adapter.
+  await Hive.initFlutter();
+  Hive.registerAdapter(GameDataAdapter() );
+
+  runApp(const ProviderScope(
+    child: MaterialApp(
+      title: '2048',
+      home: HomeView(),
+      debugShowCheckedModeBanner: false,
+    ),
+  ));
+
 }
 
+/*
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -27,3 +43,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+*/

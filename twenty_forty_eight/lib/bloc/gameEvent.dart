@@ -4,6 +4,8 @@ sealed class GameEvent {}
 
 class RestartGame extends GameEvent {}
 
+class NewTile extends GameEvent {}
+
 class LostGame extends GameEvent {
   final int score;
 
@@ -26,3 +28,5 @@ class Load extends GameEvent {
 
   Load({required this.grid,required this.score,required this.bestScore,required this.status});
 }
+
+

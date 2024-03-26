@@ -1,10 +1,9 @@
 part of 'gameBloc.dart';
 
-enum GameStatus{playing,won,lost}
+enum GameStatus{init,playing,won,lost}
 
 class GameState {
   late List<List<Tile> > grid;
-  List<Tile> toAdd = [];
   final int score;
   final int bestScore;
   final GameStatus status;
@@ -32,7 +31,7 @@ class GameState {
 }
 
 final class Initial extends GameState {
-  Initial(): super(grid:[], score: 0,bestScore: 0,status: GameStatus.playing) {
+  Initial(): super(grid:[], score: 0,bestScore: 0,status: GameStatus.init) {
     grid = List.generate(4, (y) => List.generate(4, (x) => Tile(x, y, value: 0) ) );
   }
 

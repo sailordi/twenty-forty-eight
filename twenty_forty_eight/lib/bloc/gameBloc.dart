@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:twenty_forty_eight/model/tile.dart';
+import 'package:twenty_forty_eight/models/tile.dart';
 
 part 'gameEvent.dart';
 part 'gameState.dart';
@@ -14,6 +14,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<RestartGame>(_restartGame);
     on<LostGame>(_lostGame);
     on<WonGame>(_wonGame);
+    on<NewTile>(_randomTile);
   }
 
   Iterable<Tile> get gridTiles => state.grid.expand((e) => e);
@@ -29,7 +30,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(GameUpdate(grid: event.grid, score: event.score, bestScore: event.bestScore,status: event.status));
   }
 
-  void randomTile() {
+  void _randomTile(NewTile event,Emitter<GameState> emit) {
       List<Tile> empty = gridTiles.where((t) => t.value == 0).toList();
 
       if(state.status != GameStatus.playing) {
@@ -38,24 +39,40 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if(empty.isEmpty) {
         return;
       }
-
       final generator = Random();
       int value = generator.nextDouble() < 0.1 ? 4 : 2;
 
       empty.shuffle();
 
       empty.first.value = value;
+
+      emit(GameUpdate(grid: state.grid, score: state.score, bestScore: state.bestScore,status: state.status) );
   }
 
   void _restartGame(RestartGame event,Emitter<GameState> emit) {
-    for(Tile t in gridTiles) {
-      t.merged = false;
-      t.nextX = null;
-      t.nextY = null;
-      t.value = 0;
+    List<List<Tile> > grid = state.grid;
+
+    for(List<Tile> r in grid) {
+      for(Tile t in r) {
+        t.merged = false;
+        t.nextX = null;
+        t.nextY = null;
+        t.value = 0;
+      }
     }
 
-    emit(GameUpdate(grid: state.grid, score: 0, bestScore: state.bestScore,status: GameStatus.playing));
+    final generator = Random();
+    final tiles = generator.nextInt(3) + 1;
+
+    for(int i = 0; i < tiles; i++) {
+      int i = generator.nextInt(4);
+      int j = generator.nextInt(4);
+      int value = generator.nextDouble() < 0.1 ? 4 : 2;
+
+      grid[i][j].value = value;
+    }
+
+    emit(GameUpdate(grid: grid, score: 0, bestScore: state.bestScore,status: GameStatus.playing));
   }
 
   void _lostGame(LostGame event,Emitter<GameState> emit) {

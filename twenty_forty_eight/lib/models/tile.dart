@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:uuid/uuid.dart';
 import 'gameInfo.dart';
 
+part 'tile.g.dart';
+
+@JsonSerializable(anyMap: true)
 class Tile {
+  String id = "";
   int x;
   int y;
   int? nextX;
@@ -9,7 +15,14 @@ class Tile {
   int value;
   bool merged = false;
 
-  Tile(this.x,this.y,{this.nextX, this.nextY, this.merged = false,this.value = 0});
+  Tile(this.x,this.y,{this.nextX, this.nextY, this.merged = false,this.value = 0,id = ""}) {
+    if(id == "") {
+      this.id = const Uuid().v4();
+    }else {
+      this.id = id;
+    }
+
+  }
 
   static int maxValue() { return 2048; }
 
@@ -64,13 +77,22 @@ class Tile {
       return t;
   }
 
-  Tile copyWith({int? value,int? x,int? y,int? nextX,int? nextY, bool? merged}) =>
+  Tile copyWith({int? value,int? x,int? y,int? nextX,int? nextY, bool? merged,String? id}) =>
       Tile(x ?? this.x,
           y ?? this.y,
           nextX: nextX ?? this.nextX,
           nextY: nextY ?? this.nextY,
           merged: merged ?? this.merged,
-          value: value ?? this.value);
+          value: value ?? this.value,
+          id: id ?? this.id
+      );
+
+  void rest() {
+    merged = false;
+    value = 0;
+    nextX = null;
+    nextY = null;
+  }
 
   dynamic widget(double width,double height) {
     return Container(
@@ -91,22 +113,10 @@ class Tile {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'x': x,
-    'y': y,
-    'nextX': nextX,
-    'nextY': nextY,
-    'merged': merged,
-    'value': value,
-  };
+  //Create a Tile from json data
+  factory Tile.fromJson(Map<String, dynamic> json) => _$TileFromJson(json);
 
-  static Tile fromJson(Map<String, dynamic> json) => Tile(
-    json['x'] as int,
-    json['y'] as int,
-    nextX: json['nextX'] as int?,
-    nextY: json['nextY'] as int?,
-    merged: json['merged'] as bool? ?? false,
-    value: json['value'] as int,
-  );
+  //Generate json data from the Tile
+  Map<String, dynamic> toJson() => _$TileToJson(this);
 
 }
