@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../models/tile.dart';
 
-part 'board.g.dart';
+part 'gameData.g.dart';
 
 enum GameStatus{init,playing,won,lost}
 

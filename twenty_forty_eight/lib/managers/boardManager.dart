@@ -47,12 +47,22 @@ class BoardManager extends StateNotifier<GameData> {
   // Create a fresh game state.
   GameData _restart() {
       Random gen = Random();
-      int tiles = gen.nextInt(4)+3;
+      int tiles = 0;
       List<(int,int)> xy = [];
       List<List<Tile> > grid = state.grid;
 
+      while(tiles < 3) {
+        tiles = gen.nextInt(2) + 3;
+      }
+
       if(grid.isEmpty) {
         grid = List.generate(4, (y) => List.generate(4, (x) => Tile(x, y, value: 0) ) );
+      }else {
+        for(var row in grid) {
+          for(Tile t in row) {
+            t.reset();
+          }
+        }
       }
 
       for(int i = 0; i < tiles; i++) {
@@ -125,13 +135,6 @@ class BoardManager extends StateNotifier<GameData> {
     if(won || lost) {
       if(state.score > bestScore) {
         bestScore = state.score;
-      }
-
-    }
-
-    for(List<Tile> row in grid) {
-      for(Tile t in row) {
-        t.rest();
       }
 
     }

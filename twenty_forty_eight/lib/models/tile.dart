@@ -26,32 +26,50 @@ class Tile {
 
   static int maxValue() { return 2048; }
 
+  double top(double size) {
+    return (y * size) + (GameInfo.spaceBetweenTiles * (y + 1) );
+  }
+
+  double left(double size) {
+    return (x * size) + (12.0 * (x + 1) );
+  }
+
+  double? nextTop(double size) {
+    if (nextY == null) return null;
+
+    return (nextY! * size) + (GameInfo.spaceBetweenTiles * (nextY! + 1) );
+  }
+
+  double? nextLeft(double size) {
+    if (nextX == null) return null;
+
+    return (nextX! * size) + (GameInfo.spaceBetweenTiles * (nextX! + 1) );
+  }
+
   Color tileColor() {
     switch (value) {
-      case 0:
-        return GameInfo.lightBrown;
       case 2:
-        return GameInfo.tan;
+        return const Color(0xffeee4da);
       case 4:
-        return GameInfo.tan;
+        return const Color(0xffeee1c9);
       case 8:
-        return const Color.fromARGB(255,242,177,121);
+        return const Color(0xfff3b27a);
       case 16:
-        return const Color.fromARGB(255,245,149,99);
+        return const Color(0xfff69664);
       case 32:
-        return const Color.fromARGB(255,246,124,95);
+        return const Color(0xfff77c5f);
       case 64:
-        return const Color.fromARGB(255,246,95,64);
+        return const Color(0xfff75f3b);
       case 128:
-        return const Color.fromARGB(255,235,208,117);
+        return const Color(0xffedd073);
       case 256:
-        return const Color.fromARGB(255,237,203,103);
+        return const Color(0xffedcc62);
       case 512:
-        return const Color.fromARGB(255,236,201,85);
+        return const Color(0xffedc950);
       case 1024:
-        return const Color.fromARGB(255,229,194,90);
+        return const Color(0xffedc53f);
       case 2048:
-        return const Color.fromARGB(255,232,192,70);
+        return const Color(0xffedc22e);
       default:
         return Colors.cyan;
     }
@@ -59,16 +77,7 @@ class Tile {
   }
 
   Color textColor() {
-    switch (value) {
-      case 0:
-        return GameInfo.lightBrown;
-      case 2:
-        return GameInfo.gray;
-      case 4:
-        return GameInfo.gray;
-      default:
-        return Colors.white;
-    }
+    return (value < 8) ? GameInfo.textColor : GameInfo.textColorWhite;
   }
 
   Tile copy() {
@@ -87,30 +96,11 @@ class Tile {
           id: id ?? this.id
       );
 
-  void rest() {
+  void reset() {
     merged = false;
     value = 0;
     nextX = null;
     nextY = null;
-  }
-
-  dynamic widget(double width,double height) {
-    return Container(
-      width: width,
-      height: height,
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: tileColor(),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(
-          value.toString(),
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
   }
 
   //Create a Tile from json data

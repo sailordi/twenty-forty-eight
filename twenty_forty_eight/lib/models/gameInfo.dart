@@ -3,25 +3,32 @@ import 'dart:math';
 
 class GameInfo {
   static const  int scale = 4;
-  static const double spaceBetweenTiles = 10;
+  static const double spaceBetweenTiles = 12.0;
 
-  late final double width;
-  late final double height;
-  late final double tileSize;
+  late double width;
+  late double height;
+  late double tileSize;
 
+  static const Color backgroundColor = Color(0xfffaf8ef);
+  static const Color textColor = Color(0xff776e65);
+  static const Color textColorWhite = Color(0xfff9f6f2);
+  static const Color boardColor = Color(0xffbbada0);
+  static const Color emptyTileColor = Color(0xffcdc1b4);
+  static const Color buttonColor = Color(0xff8f7a66);
+  static const Color scoreColor = Color(0xffbbada0);
+  static const Color overlayColor = Color.fromRGBO(238, 228, 218, 0.73);
 
-  static const Color lightBrown = Color.fromARGB(255,205,193,180);
-  static const Color darkBrown = Color.fromARGB(255,187,173,160);
-  static const Color tan = Color.fromARGB(255,238,228,218);
-  static const Color gray = Color.fromARGB(255,119,110,101);
-  static const Color orange = Color.fromARGB(255,245,149,99);
-  static const Color numColor = Color.fromARGB(255, 119, 110, 101);
   static const double cornerRadius = 8.0;
 
   GameInfo(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
+    final size = max(290.0,
+        min( (MediaQuery.of(context).size.shortestSide * 0.90).floorToDouble(),
+            460.0));
+    final sizePerTile = (size/scale).floorToDouble();
 
-    width = min(screenSize.width,screenSize.height*7 / (scale*scale));
+    tileSize = sizePerTile - spaceBetweenTiles - (spaceBetweenTiles / scale);
+
+    width = tileSize*scale;
     height = width;
     tileSize = (width - spaceBetweenTiles * (scale + 1) ) / (scale);
   }

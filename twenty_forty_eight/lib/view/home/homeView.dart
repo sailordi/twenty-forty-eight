@@ -2,138 +2,151 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:twenty_forty_eight/models/tile.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_swipe_detector/flutter_swipe_detector.dart';
 import 'package:twenty_forty_eight/models/gameInfo.dart';
-import 'package:twenty_forty_eight/bloc/gameBloc.dart';
-import 'package:twenty_forty_eight/widgets/swipeWidget.dart';
-import 'package:twenty_forty_eight/widgets/tileWidget.dart';
+import 'package:twenty_forty_eight/widgets/boardWidget.dart';
+import 'package:twenty_forty_eight/widgets/buttonWidget.dart';
+import 'package:twenty_forty_eight/widgets/scoreWidget.dart';
 import 'package:twenty_forty_eight/widgets/widgetFactory.dart';
 
-class HomeView extends StatefulWidget {
+import '../../managers/boardManager.dart';
+
+class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _HomeState();
 }
 
-class _HomeViewState extends State<HomeView> with WidgetsBindingObserver,SingleTickerProviderStateMixin {
-  late GameInfo info;
+class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, WidgetsBindingObserver {
+  //The contoller used to move the the tiles
+  late final AnimationController _moveController = AnimationController(
+    duration: const Duration(milliseconds: 100),
+    vsync: this,
+  )..addStatusListener((status) {
+    //When the movement finishes merge the tiles and start the scale animation which gives the pop effect.
+    if (status == AnimationStatus.completed) {
+      //TODO Merge
+      _scaleController.forward(from: 0.0);
+    }
+  });
+
+  //The curve animation for the move animation controller.
+  late final CurvedAnimation _moveAnimation = CurvedAnimation(
+    parent: _moveController,
+    curve: Curves.easeInOut,
+  );
+
+  //The contoller used to show a popup effect when the tiles get merged
+  late final AnimationController _scaleController = AnimationController(
+    duration: const Duration(milliseconds: 200),
+    vsync: this,
+  )..addStatusListener((status) {
+    //When the scale animation finishes end the round and if there is a queued movement start the move controller again for the next direction.
+    if (status == AnimationStatus.completed) {
+      if (ref.read(boardManager.notifier).endRound() ) {
+        _moveController.forward(from: 0.0);
+      }
+    }
+  });
+
+  //The curve animation for the scale animation controller.
+  late final CurvedAnimation _scaleAnimation = CurvedAnimation(
+    parent: _scaleController,
+    curve: Curves.easeInOut,
+  );
 
   @override
   void initState() {
-    super.initState();
-
+    //Add an Observer for the Lifecycles of the App
     WidgetsBinding.instance.addObserver(this);
+    super.initState();
   }
 
   @override
   void dispose() {
+    //Remove the Observer for the Lifecycles of the App
     WidgetsBinding.instance.removeObserver(this);
+
+    //Dispose the animations.
+    _moveAnimation.dispose();
+    _scaleAnimation.dispose();
+    _moveController.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      _saveGameState(provider(context).state);
+    //Save current state when the app becomes inactive
+    if (state == AppLifecycleState.inactive) {
+      ref.read(boardManager.notifier).save();
     }
-
-  }
-
-  void _saveGameState(GameState gameState) async {
-    final prefs = await SharedPreferences.getInstance();
-    String gameStateJson = json.encode(gameState.toJson());
-
-      await prefs.setString('gameState',"");//gameStateJson);
-  }
-
-  Future<(GameState,bool)> _loadGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    GameState ret = GameState(grid: [],score: 0,bestScore: 0,status: GameStatus.init);
-    bool loaded = false;
-
-    String? gameStateJson ;//= prefs.getString('gameState');
-
-    if(gameStateJson != null) {
-      loaded = true;
-      Map<String, dynamic> jsonDecode = json.decode(gameStateJson);
-
-      ret = GameState.fromJson(jsonDecode);
-    }
-
-    return (ret,loaded);
-  }
-
-  void _initGrid(GameBloc bloc,GameState state) async {
-    if(state.status != GameStatus.init) {
-      return;
-    }
-    (GameState,bool) data = await _loadGameState();
-
-    if(data.$2 == true) {
-      bloc.add(Load(grid: data.$1.grid, score: data.$1.score, bestScore: data.$1.bestScore, status: data.$1.status) );
-    }
-    else {
-      bloc.add(RestartGame() );
-    }
-
-  }
-
-  void _newGame(BuildContext context) {
-    provider(context).add(RestartGame() );
-  }
-
-  GameBloc provider(BuildContext context) {
-    return BlocProvider.of<GameBloc>(context);
-  }
-
-  void merge(SwipeDirection direction) {
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
   Widget build(BuildContext context) {
-    info = GameInfo(context);
-
-    return Scaffold(
-        backgroundColor: GameInfo.tan,
-        body: BlocBuilder<GameBloc, GameState>(
-            builder: (context, state) {
-              _initGrid(provider(context),state);
-              return   Column(
-                children: [
-                  Stack(
-                    children: [
-                      WidgetFactory.logo(),
-                      WidgetFactory.scoreBord(state.score,state.bestScore)
-                    ],
-                  ),
-                  Stack(
-                    children: [
-                      WidgetFactory.instructions(),
-                      WidgetFactory.newGame(() { _newGame(context); })
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Stack(
+    GameInfo info = GameInfo(context);
+    return SwipeDetector(
+        onSwipe: (direction, offset) {
+          //TODO Move
+        },
+        child: Scaffold(
+          backgroundColor: GameInfo.backgroundColor,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    WidgetFactory.logo(),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        WidgetFactory.emptyBoard(info.width,info.height),
-                        for (int i = 0; i < state.grid.length; ++i)
-                          for (int j = 0; j < state.grid[i].length; ++j)
-                            Positioned(
-                                top: (i + 1) * GameInfo.spaceBetweenTiles + i * info.tileSize-6,
-                                left: (j + 1) * GameInfo.spaceBetweenTiles + j * info.tileSize-6,
-                                child: state.grid[i][j].widget(info.tileSize,info.tileSize)
+                        const ScoreWidget(),
+                        const SizedBox(
+                          height: 32.0,
+                        ),
+                        Row(
+                          children: [
+                            WidgetFactory.instructions(),
+                            const SizedBox(
+                              width: 16.0,
                             ),
-                      ]
-                  )
+                            ButtonWidget(
+                              text: "New game",
+                              onPressed: () {
+                                //Restart the game
+                                ref.read(boardManager.notifier).newGame();
+                              },
+                            )
+                          ],
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 32.0,
+              ),
+              Stack(
+                children: [
+                  EmptyBordWidget(info: info),
+                  TileBoardWidget(moveAnimation: _moveAnimation,scaleAnimation:_scaleAnimation, info: info)
                 ],
-              );
-            }
-        )
-    );
+              )
+            ],
+          ),
+        ),
+      );
   }
 
 }
