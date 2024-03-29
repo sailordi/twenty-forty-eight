@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +85,79 @@ class BoardManager extends StateNotifier<GameData> {
     state = _restart();
   }
 
+  void merge() {
+
+  }
+
+  bool move(SwipeDirection direction) {
+    if(state.status != GameStatus.playing) {
+      return false;
+    }
+    var grid = state.grid;
+    int size = grid.length;
+
+
+    if(direction == SwipeDirection.left || direction == SwipeDirection.right) {
+      bool left = direction == SwipeDirection.left;
+
+      for(int i = 0; i < size; i++) {
+        var row = grid[i];
+
+        if (!left) {
+          row = row.reversed.toList();
+        }
+
+        int targetX = left ? 0 : size - 1;
+
+        for (int j = 0; j < row.length; j++) {
+          Tile t = row[j];
+          Tile? nT = (j+1 < row.length) ? row[j+1] : null;
+
+          if(t.value == 0 || nT == null) {
+            continue;
+          }
+
+          if(nT.value == 0 || nT.value == t.value) {
+            t.nextX = targetX;
+            targetX += left ? 1 : -1;
+          }
+
+        }
+
+      }
+    }else {
+      bool up = direction == SwipeDirection.up;
+
+      for (int i = 0; i < size; i++) {
+          List<Tile> column = List.generate(size, (y) => grid[y][i]);
+
+          if (!up) {
+            column = column.reversed.toList();
+          }
+
+          int targetY = up ? 0 : size - 1;
+
+          for (int j = 0; j < column.length; j++) {
+            Tile t = column[j];
+            Tile? nT = (j+1 < column.length) ? column[j+1] : null;
+
+            if(t.value == 0 || nT == null) {
+              continue;
+            }
+
+            if(nT.value == 0 || nT.value == t.value) {
+              t.nextY = targetY;
+              targetY += up ? 1 : -1;
+            }
+
+          }
+
+        }
+
+      }
+      return true;
+    }
+
   //Finish round, win or loose the game.
   void _endRound() {
     Iterable<Tile> tiles = state.gridTiles;
@@ -122,8 +196,11 @@ class BoardManager extends StateNotifier<GameData> {
             lost = false;
             break;
           }
+
         }
+
       }
+
     }
 
     if(won) {
@@ -139,6 +216,13 @@ class BoardManager extends StateNotifier<GameData> {
 
     }
 
+    for(var row in grid) {
+      for(Tile t in row) {
+        t.reset(t.value);
+      }
+
+    }
+
     state = state.copyWith(grid: grid, status: status,bestScore: bestScore);
   }
 
@@ -150,11 +234,13 @@ class BoardManager extends StateNotifier<GameData> {
 
     //If player moved too fast before the current animation/transition finished, start the move for the next direction
     var nextDirection = ref.read(nextDirectionManager);
+
     if (nextDirection != null) {
-      //TODO Move
+      move(nextDirection);
       ref.read(nextDirectionManager.notifier).clear();
       return true;
     }
+
     return false;
   }
 

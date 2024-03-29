@@ -96,9 +96,9 @@ class Tile {
           id: id ?? this.id
       );
 
-  void reset() {
+  void reset(int? value) {
     merged = false;
-    value = 0;
+    this.value = value ?? 0;
     nextX = null;
     nextY = null;
   }

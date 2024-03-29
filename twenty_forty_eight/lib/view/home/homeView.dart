@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_swipe_detector/flutter_swipe_detector.dart';
+import 'package:twenty_forty_eight/models/gameData.dart';
 import 'package:twenty_forty_eight/models/gameInfo.dart';
 import 'package:twenty_forty_eight/widgets/boardWidget.dart';
 import 'package:twenty_forty_eight/widgets/buttonWidget.dart';
@@ -92,7 +93,9 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
     GameInfo info = GameInfo(context);
     return SwipeDetector(
         onSwipe: (direction, offset) {
-          //TODO Move
+          if (ref.read(boardManager.notifier).move(direction) ) {
+            _moveController.forward(from: 0.0);
+          }
         },
         child: Scaffold(
           backgroundColor: GameInfo.backgroundColor,
