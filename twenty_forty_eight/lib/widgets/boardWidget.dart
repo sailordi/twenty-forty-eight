@@ -58,7 +58,7 @@ class TileBoardWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(boardManager);
-    List<Tile> grid = data.gridTiles.where( (t) => t.value != 0).toList();
+    List<Tile> grid = GameData.gridTiles(data.grid).where( (t) => t.value != 0).toList();
 
     return SizedBox(
       width: info.width,

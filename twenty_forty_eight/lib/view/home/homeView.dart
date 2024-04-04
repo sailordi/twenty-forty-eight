@@ -29,8 +29,8 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
   )..addStatusListener((status) {
     //When the movement finishes merge the tiles and start the scale animation which gives the pop effect.
     if (status == AnimationStatus.completed) {
-      //TODO Merge
-      _scaleController.forward(from: 0.0);
+        ref.read(boardManager.notifier).merge();
+        _scaleController.forward(from: 0.0);
     }
   });
 
@@ -92,64 +92,66 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
   Widget build(BuildContext context) {
     GameInfo info = GameInfo(context);
     return SwipeDetector(
-        onSwipe: (direction, offset) {
-          if (ref.read(boardManager.notifier).move(direction) ) {
-            _moveController.forward(from: 0.0);
-          }
-        },
-        child: Scaffold(
-          backgroundColor: GameInfo.backgroundColor,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    WidgetFactory.logo(),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const ScoreWidget(),
-                        const SizedBox(
-                          height: 32.0,
-                        ),
-                        Row(
-                          children: [
-                            WidgetFactory.instructions(),
-                            const SizedBox(
-                              width: 16.0,
-                            ),
-                            ButtonWidget(
-                              text: "New game",
-                              onPressed: () {
-                                //Restart the game
-                                ref.read(boardManager.notifier).newGame();
-                              },
-                            )
-                          ],
-                        )
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 32.0,
-              ),
-              Stack(
+      onSwipe: (direction, offset) {
+        if (ref.read(boardManager.notifier).move(direction)) {
+          _moveController.forward(from: 0.0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: GameInfo.backgroundColor,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  EmptyBordWidget(info: info),
-                  TileBoardWidget(moveAnimation: _moveAnimation,scaleAnimation:_scaleAnimation, info: info)
+                  Column(
+                    children: [
+                      WidgetFactory.logo(),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const ScoreWidget(),
+                      const SizedBox(
+                        height: 32.0,
+                      ),
+                      Row(
+                        children: [
+                          ButtonWidget(
+                            text: "New game",
+                            onPressed: () {
+                              //Restart the game
+                              ref.read(boardManager.notifier).newGame();
+                            },
+                          )
+                        ],
+                      )
+                    ],
+                  )
                 ],
-              )
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(
+              height: 32.0,
+            ),
+            Stack(
+              children: [
+                EmptyBordWidget(info: info),
+                TileBoardWidget(
+                    moveAnimation: _moveAnimation,
+                    scaleAnimation: _scaleAnimation, info: info,)
+              ],
+            )
+          ],
         ),
-      );
+      ),
+    );
   }
 
 }

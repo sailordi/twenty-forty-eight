@@ -14,7 +14,6 @@ class WidgetFactory {
 
     return Row(
         children: [
-          const SizedBox(width: 10, height: 30),
           const Text("Join the numbers and get to the ",
               style: TextStyle(fontSize: fontSize)),
           Text("${Tile.maxValue()} tile", style: const TextStyle(

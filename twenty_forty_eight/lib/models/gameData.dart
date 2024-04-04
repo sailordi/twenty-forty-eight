@@ -6,6 +6,8 @@ part 'gameData.g.dart';
 
 enum GameStatus{init,playing,won,lost}
 
+typedef Grid = List<List<Tile> >;
+
 @JsonSerializable(explicitToJson: true, anyMap: true)
 class GameData {
   late List<List<Tile> > grid;
@@ -18,7 +20,8 @@ class GameData {
 
   GameData.newGame(this.bestScore,this.grid) : score = 0,
                                                 status = GameStatus.playing;
-  Iterable<Tile> get gridTiles => grid.expand((e) => e);
+
+  static Iterable<Tile> gridTiles(Grid g) => g.expand((e) => e);
 
   GameData copyWith({int? score,int? bestScore,List<List<Tile> >? grid,GameStatus? status}) =>
       GameData(score ?? this.score,
