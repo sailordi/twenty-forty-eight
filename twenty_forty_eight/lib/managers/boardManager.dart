@@ -119,10 +119,13 @@ class BoardManager extends StateNotifier<GameData> {
 
     if(moved) {
       Tile? newT = _randomTile(grid,indexes);
+      //TODO test won
+      //newT = _winingTile(grid,indexes);
 
       if(newT != null) {
         grid.add(newT);
       }
+
 
     }
 
@@ -139,6 +142,24 @@ class BoardManager extends StateNotifier<GameData> {
     Random gen = Random();
     int i;
     int value = gen.nextDouble() < 0.1 ? 4 : 2;
+
+    do {
+      i = gen.nextInt(GameInfo.maxTiles() );
+    } while (indexes.contains(i) );
+
+    return Tile(i,value: value);
+  }
+
+  Tile? _winingTile(Grid g,Indexes indexes) {
+    var emptyTiles = g.length == GameInfo.maxTiles();
+
+    if(emptyTiles) {
+      return null;
+    }
+
+    Random gen = Random();
+    int i;
+    int value = Tile.maxValue();
 
     do {
       i = gen.nextInt(GameInfo.maxTiles() );

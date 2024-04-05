@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:twenty_forty_eight/widgets/tileWidget.dart';
 
-import '../models/gameData.dart';
-import '../models/gameInfo.dart';
 import '../managers/boardManager.dart';
-import '../models/tile.dart';
+import '../models/gameInfo.dart';
+import '../widgets/tileWidget.dart';
 
 class EmptyBordWidget extends StatelessWidget {
   final GameInfo info;
@@ -86,7 +84,7 @@ class TileBoardWidget extends ConsumerWidget {
                       '${t.value}',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 24.0,
+                          fontSize: (t.value < 100) ? 24.0 : 15,
                           color: t.textColor() ),
                     )),
               ),

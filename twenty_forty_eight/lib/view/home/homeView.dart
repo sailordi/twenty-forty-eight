@@ -13,6 +13,7 @@ import 'package:twenty_forty_eight/widgets/scoreWidget.dart';
 import 'package:twenty_forty_eight/widgets/widgetFactory.dart';
 
 import '../../managers/boardManager.dart';
+import '../../widgets/statusWidget.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -172,7 +173,9 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
                     moveAnimation: _moveAnimation,
                     scaleAnimation: _scaleAnimation, info: info,)
                 ],
-              )
+              ),
+              const SizedBox(height: 20),
+              const StatusWidget(),
             ],
           )
         ),
