@@ -91,6 +91,8 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
   @override
   Widget build(BuildContext context) {
     GameInfo info = GameInfo(context);
+    const double space = 50.0;
+
     return SwipeDetector(
       onSwipe: (direction, offset) {
         if (ref.read(boardManager.notifier).move(direction)) {
@@ -99,56 +101,80 @@ class _HomeState extends ConsumerState<HomeView> with TickerProviderStateMixin, 
       },
       child: Scaffold(
         backgroundColor: GameInfo.backgroundColor,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: space,),
+              Stack(
                 children: [
-                  Column(
-                    children: [
-                      WidgetFactory.logo(),
-                    ],
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(width: 10,),
+                        WidgetFactory.logo(),
+                      ]
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      const ScoreWidget(),
-                      const SizedBox(
-                        height: 32.0,
-                      ),
-                      Row(
-                        children: [
-                          ButtonWidget(
-                            text: "New game",
-                            onPressed: () {
-                              //Restart the game
-                              ref.read(boardManager.notifier).newGame();
-                            },
-                          )
-                        ],
-                      )
+                      ScoreWidget(),
+                      SizedBox(width: 10,),
                     ],
                   )
                 ],
               ),
-            ),
-            const SizedBox(
-              height: 32.0,
-            ),
-            Stack(
-              children: [
-                EmptyBordWidget(info: info),
-                TileBoardWidget(
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 10,),
+                  WidgetFactory.instructions()
+                ],
+              ),
+              const SizedBox(height: 10,),
+              Stack(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 10,),
+                      ButtonWidget(
+                        text: "New game",
+                        onPressed: () {
+                          //Restart the game
+                          ref.read(boardManager.notifier).newGame();
+                        },
+                      )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const SizedBox(width: 10,),
+                      NewLineTextButtonWidget(
+                        text: "New Game\n+\nReset best",
+                        onPressed: () {
+                          //Resets best score
+                          ref.read(boardManager.notifier).resetBestScore();
+                        },
+                      ),
+                      const SizedBox(width: 10,),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: space),
+              Stack(
+                children: [
+                  EmptyBordWidget(info: info),
+                  TileBoardWidget(
                     moveAnimation: _moveAnimation,
                     scaleAnimation: _scaleAnimation, info: info,)
-              ],
-            )
-          ],
+                ],
+              )
+            ],
+          )
         ),
       ),
     );

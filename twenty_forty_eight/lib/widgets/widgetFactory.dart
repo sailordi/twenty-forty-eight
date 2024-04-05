@@ -10,7 +10,7 @@ class WidgetFactory {
   }
 
   static dynamic instructions() {
-    const double fontSize = 11;
+    const double fontSize = 15;
 
     return Row(
         children: [

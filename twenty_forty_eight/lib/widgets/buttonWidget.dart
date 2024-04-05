@@ -24,3 +24,27 @@ class ButtonWidget extends ConsumerWidget {
         ));
   }
 }
+
+class NewLineTextButtonWidget extends ConsumerWidget {
+  final String? text;
+  final VoidCallback onPressed;
+
+  const NewLineTextButtonWidget(
+      {super.key, this.text,required this.onPressed});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ElevatedButton(
+        style: ButtonStyle(
+          padding: MaterialStateProperty.all<EdgeInsets>(
+              const EdgeInsets.all(16.0)),
+          backgroundColor: MaterialStateProperty.all<Color>(GameInfo.buttonColor) ,
+        ),
+        onPressed: onPressed,
+        child: Text(
+          textAlign:TextAlign.center,
+          text!,
+          style: const TextStyle(color: GameInfo.textColorWhite,fontWeight: FontWeight.bold, fontSize: 18.0),
+        ));
+  }
+}

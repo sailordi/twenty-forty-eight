@@ -47,7 +47,7 @@ class BoardManager extends StateNotifier<GameData> {
   }
 
   // Create a fresh game state.
-  GameData _restart() {
+  GameData _restart({bool resetBest = false}) {
       Random gen = Random();
       int tiles = 0;
       Grid grid = [];
@@ -68,7 +68,10 @@ class BoardManager extends StateNotifier<GameData> {
 
       }
 
-      return GameData.newGame(state.bestScore,grid);
+      if(!resetBest) {
+        return GameData.newGame(state.score,grid);
+      }
+      return GameData.newGame(0,grid);
   }
 
   // Start New Game
@@ -323,6 +326,10 @@ class BoardManager extends StateNotifier<GameData> {
     }
 
     return false;
+  }
+
+  void resetBestScore() {
+    state = _restart(resetBest: true);
   }
 
 }
