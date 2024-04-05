@@ -8,14 +8,12 @@ part 'tile.g.dart';
 @JsonSerializable(anyMap: true)
 class Tile {
   String id = "";
-  int x;
-  int y;
-  int? nextX;
-  int? nextY;
+  int index;
+  int? nextIndex;
   int value;
   bool merged = false;
 
-  Tile(this.x,this.y,{this.nextX, this.nextY, this.merged = false,this.value = 0,id = ""}) {
+  Tile(this.index,{this.nextIndex, this.merged = false,this.value = 0,id = ""}) {
     if(id == "") {
       this.id = const Uuid().v4();
     }else {
@@ -27,23 +25,31 @@ class Tile {
   static int maxValue() { return 2048; }
 
   double top(double size) {
-    return (y * size) + (GameInfo.spaceBetweenTiles * (y + 1) );
+    var i = ( (index + 1) / GameInfo.scale).ceil();
+
+    return ( (i - 1) * size) + (GameInfo.spaceBetweenTiles * i);
   }
 
   double left(double size) {
-    return (x * size) + (12.0 * (x + 1) );
+    var i = (index - ( ( (index + 1) / GameInfo.scale).ceil() * GameInfo.scale - GameInfo.scale) );
+
+    return (i * size) + (GameInfo.spaceBetweenTiles * (i + 1));
   }
 
   double? nextTop(double size) {
-    if (nextY == null) return null;
+    if (nextIndex == null) { return null; }
 
-    return (nextY! * size) + (GameInfo.spaceBetweenTiles * (nextY! + 1) );
+    var i = ( (nextIndex! + 1) / GameInfo.scale).ceil();
+
+    return ( (i - 1) * size) + (GameInfo.spaceBetweenTiles * i);
   }
 
   double? nextLeft(double size) {
-    if (nextX == null) return null;
+    if (nextIndex == null) return null;
 
-    return (nextX! * size) + (GameInfo.spaceBetweenTiles * (nextX! + 1) );
+    var i = (nextIndex! - ( ( (nextIndex! + 1) / GameInfo.scale).ceil() * GameInfo.scale - GameInfo.scale) );
+
+    return (i * size) + (GameInfo.spaceBetweenTiles * (i + 1));
   }
 
   Color tileColor() {
@@ -80,28 +86,13 @@ class Tile {
     return (value < 8) ? GameInfo.textColor : GameInfo.textColorWhite;
   }
 
-  Tile copy() {
-    Tile t = Tile(x, y, nextX: nextX,nextY: nextY,merged: merged,value: value);
-
-      return t;
-  }
-
-  Tile copyWith({int? value,int? x,int? y,int? nextX,int? nextY, bool? merged,String? id}) =>
-      Tile(x ?? this.x,
-          y ?? this.y,
-          nextX: nextX ?? this.nextX,
-          nextY: nextY ?? this.nextY,
+  Tile copyWith({int? value,int? index,int? nextIndex, bool? merged,String? id}) =>
+      Tile(index ?? this.index,
+          nextIndex: nextIndex ?? this.nextIndex,
           merged: merged ?? this.merged,
           value: value ?? this.value,
           id: id ?? this.id
       );
-
-  void reset({int? value}) {
-    merged = false;
-    this.value = value ?? 0;
-    nextX = null;
-    nextY = null;
-  }
 
   //Create a Tile from json data
   factory Tile.fromJson(Map<String, dynamic> json) => _$TileFromJson(json);

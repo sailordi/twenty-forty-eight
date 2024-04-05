@@ -16,6 +16,7 @@ import 'roundManager.dart';
 class BoardManager extends StateNotifier<GameData> {
   final StateNotifierProviderRef ref;
   final String hiveName = 'gameData';
+  final verticalOrder = [12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3];
 
   BoardManager(this.ref) : super(GameData.newGame(0, [])) {
     //Load the last saved state or start a new game.
@@ -49,27 +50,25 @@ class BoardManager extends StateNotifier<GameData> {
   GameData _restart() {
       Random gen = Random();
       int tiles = 0;
-      Grid grid = state.grid;
+      Grid grid = [];
+      Indexes indexes = [];
 
       while(tiles < 3) {
         tiles = gen.nextInt(2) + 3;
       }
 
-      if(grid.isEmpty) {
-        grid = List.generate(4, (y) => List.generate(4, (x) => Tile(x, y, value: 0) ) );
-      }else {
-        for(var row in grid) {
-          for(Tile t in row) {
-            t.reset();
-          }
-        }
-      }
-
       for(int i = 0; i < tiles; i++) {
-        _randomTile(grid);
+        Tile? t = _randomTile(grid,indexes);
+
+        if(t != null) {
+          indexes.add(t.index);
+
+          grid.add(t);
+        }
+
       }
 
-      return GameData.newGame(state.score,grid);
+      return GameData.newGame(state.bestScore,grid);
   }
 
   // Start New Game
@@ -77,153 +76,108 @@ class BoardManager extends StateNotifier<GameData> {
     state = _restart();
   }
 
-  Tile? _nextTileMerge(int i,int j,Tile t,Grid g) {
-    Tile? tL,tR,tU,tD;
-
-    if(j-1 >= 0 && j-1 < g[i].length) {
-      tL = g[i][j-1];
-    }
-    if(j+1 >= 0 && j+1 < g.length) {
-      tR = g[i][j+1];
-    }
-    if(i-1 >= 0 && i-1 < g.length) {
-      tU = g[i-1][j];
-    }
-    if(i+1 >= 0 && i+1 < g.length) {
-      tD = g[i+1][j];
-    }
-
-    if(tL != null && t.nextX == tL.nextX && t.nextY == tL.nextY) {
-      return tL;
-    }
-    if(tR != null && t.nextX == tR.nextX && t.nextY == tR.nextY) {
-      return tR;
-    }
-    if(tU != null && t.nextX == tU.nextX && t.nextY == tU.nextY) {
-      return tU;
-    }
-    if(tD != null && t.nextX == tD.nextX && t.nextY == tD.nextY) {
-      return tD;
-    }
-
-    return null;
-  }
-
   void merge() {
-    var grid = state.grid;
-    int size = grid.length;
-    bool merged = false;
+    Grid grid = [];
+    bool moved = false;
     int score = state.score;
+    Indexes indexes = [];
 
-    for(int i = 0; i < size; i++) {
-      for(int j = 0; j < grid[i].length; j++) {
-        Tile t = grid[i][j];
+    for (int i = 0, l = state.grid.length; i < l; i++) {
+      Tile t = state.grid[i];
 
-        if(t.value == 0 || (t.nextX == null && t.nextY == null) ) {
-          continue;
+      var value = t.value, merged = false;
+
+      if (i + 1 < l) {
+        //sum the number of the two tiles with same index and mark the tile as merged and skip the next iteration.
+        Tile next = state.grid[i + 1];
+
+        if (t.nextIndex == next.nextIndex ||
+            t.index == next.nextIndex && t.nextIndex == null) {
+          value = t.value + next.value;
+          merged = true;
+          score += t.value;
+          i += 1;
         }
-        Tile? nT = _nextTileMerge(i,j,t,grid);
 
-        if(nT == null || nT.nextX != t.nextX && nT.nextY != t.nextY) {
-          continue;
-        }
-        var value = nT.value;
-        merged = true;
-        score += value;
-        t.x = t.nextX!;
-        t.y = t.nextY!;
-        t.value += value;
-        t.merged = true;
       }
 
+      if (merged || t.nextIndex != null && t.index != t.nextIndex) {
+        moved = true;
+      }
+
+      grid.add(t.copyWith(
+          index: t.nextIndex ?? t.index,
+          nextIndex: null,
+          value: value,
+          merged: merged));
+
+      indexes.add(grid.last.index);
     }
 
-    if(merged) {
-      _randomTile(grid);
+    if(moved) {
+      Tile? newT = _randomTile(grid,indexes);
+
+      if(newT != null) {
+        grid.add(newT);
+      }
+
     }
 
     state = state.copyWith(score: score,grid: grid);
   }
 
-  void _randomTile(Grid g) {
-    var emptyTiles = GameData.gridTiles(g).where((t) => t.value == 0).toList();
+  Tile? _randomTile(Grid g,Indexes indexes) {
+    var emptyTiles = g.length == GameInfo.maxTiles();
 
-    if(emptyTiles.isEmpty) {
-      return;
+    if(emptyTiles) {
+      return null;
     }
+
     Random gen = Random();
+    int i;
     int value = gen.nextDouble() < 0.1 ? 4 : 2;
 
-    emptyTiles.shuffle();
+    do {
+      i = gen.nextInt(GameInfo.maxTiles() );
+    } while (indexes.contains(i) );
 
-    emptyTiles.first.value = value;
+    return Tile(i,value: value);
   }
 
-  Tile? _nextTileMove(int i, int j,Grid g,SwipeDirection direction) {
-    if(direction == SwipeDirection.left) {
-      j -= 1;
-    }
-    else if(direction == SwipeDirection.right) {
-      j += 1;
-    }
-    else if(direction == SwipeDirection.up) {
-      i -= 1;
-    }
-    else if(direction == SwipeDirection.down) {
-      i += 1;
-    }
-
-    if(i < 0 || i >= g.length) {
-      return null;
-    }
-
-    if(direction == SwipeDirection.up && direction == SwipeDirection.up) {
-      return g[i][j];
-    }
-
-    if(j < 0 || j >= g[i].length) {
-      return null;
-    }
-
-    return g[i][j];
-
+  // Check whether the indexes are in the same row or column in the board.
+  bool _validIndexPair(index, nextIndex) {
+    return index < 4 && nextIndex < 4 ||
+        index >= 4 && index < 8 && nextIndex >= 4 && nextIndex < 8 ||
+        index >= 8 && index < 12 && nextIndex >= 8 && nextIndex < 12 ||
+        index >= 12 && nextIndex >= 12;
   }
-  Tile _tileMove(int i, int j,Grid g,SwipeDirection direction) {
-    int nextI = i,nextJ = j;
 
-    if(direction == SwipeDirection.left) {
-      nextJ -= 1;
-    }
-    else if(direction == SwipeDirection.right) {
-      nextJ += 1;
-    }
-    else if(direction == SwipeDirection.up) {
-      nextI -= 1;
-    }
-    else if(direction == SwipeDirection.down) {
-      nextI += 1;
-    }
+  Tile _calculate(Tile tile,List<Tile> tiles,direction) {
+    bool asc =
+        direction == SwipeDirection.left || direction == SwipeDirection.up;
+    bool vert =
+        direction == SwipeDirection.up || direction == SwipeDirection.down;
+    // Get the first index from the left in the row
+    int index = vert ? verticalOrder[tile.index] : tile.index;
+    int nextIndex = ((index + 1) / 4).ceil() * 4 - (asc ? 4 : 1);
 
-    Tile t = g[i][j];
-
-    if(nextI < 0 && nextI >= g.length) {
-      return t;
-    }
-
-    if(direction != SwipeDirection.up && direction != SwipeDirection.up) {
-      if(nextI >= 0 && nextI < g.length) {
-        t.nextX = nextI;
+    // If the list of the new tiles to be rendered is not empty get the last tile
+    if (tiles.isNotEmpty) {
+      var last = tiles.last;
+      // If user swipes vertically use the verticalOrder list to retrieve the up/down index else use the existing index
+      var lastIndex = last.nextIndex ?? last.index;
+      lastIndex = vert ? verticalOrder[lastIndex] : lastIndex;
+      if (_validIndexPair(index, lastIndex)) {
+        // If the order is ascending set the tile after the last processed tile
+        // If the order is descending set the tile before the last processed tile
+        nextIndex = lastIndex + (asc ? 1 : -1);
       }
-
-    }
-    else {
-      if(j >= 0 && j < g[i].length) {
-        t.nextY = nextJ;
-      }
-
     }
 
-    return t;
+    // Return immutable copy of the current tile with the new next index
+    return tile.copyWith(
+        nextIndex: vert ? verticalOrder.indexOf(nextIndex) : nextIndex);
+
   }
 
   bool move(SwipeDirection direction) {
@@ -231,79 +185,111 @@ class BoardManager extends StateNotifier<GameData> {
       return false;
     }
 
-    var grid = state.grid;
-    int size = grid.length;
+    bool asc = direction == SwipeDirection.left || direction == SwipeDirection.up;
+    bool vert = direction == SwipeDirection.up || direction == SwipeDirection.down;
+    // Sort the list of tiles by index.
+    // If user swipes vertically use the verticalOrder list to retrieve the up/down index
+    state.grid.sort(((a, b) =>
+    (asc ? 1 : -1) *
+        (vert
+            ? verticalOrder[a.index].compareTo(verticalOrder[b.index])
+            : a.index.compareTo(b.index))));
 
-      for(int i = 0; i < size; i++) {
+    Grid grid = [];
 
-        for(int j = 0; j < grid[i].length; j++) {
-          Tile t = _tileMove(i,j,grid,direction);
+    for (int i = 0, l = state.grid.length; i < l; i++) {
+      Tile tile = state.grid[i];
 
-          if(t.value == 0) {
+      // Calculate nextIndex for current tile.
+      tile = _calculate(tile,grid,direction);
+      grid.add(tile);
+
+      if (i + 1 < l) {
+        Tile next = state.grid[i + 1];
+
+        // Assign current tile nextIndex or index to the next tile if its allowed to be moved.
+        if (tile.value == next.value) {
+          // If user swipes vertically use the verticalOrder list to retrieve the up/down index else use the existing index
+          var index = vert ? verticalOrder[tile.index] : tile.index,
+              nextIndex = vert ? verticalOrder[next.index] : next.index;
+
+          if (_validIndexPair(index, nextIndex)) {
+            grid.add(next.copyWith(nextIndex: tile.nextIndex));
+            // Skip next iteration if next tile was already assigned nextIndex.
+            i += 1;
             continue;
           }
-          Tile? nT = _nextTileMove(i,j,grid,direction);
-
-          if(nT == null || (nT.value != 0 && nT.value != t.value) ) {
-            continue;
-          }
-          if(nT.nextX != null && nT.nextY != null) {
-            nT.nextX = t.nextX;
-            nT.nextY = t.nextY;
-          }
-
         }
-
       }
+    }
+    state = state.copyWith(grid: grid);
 
-      state = state.copyWith(grid: grid);
-
-      return true;
+    return true;
   }
 
   //Finish round, win or loose the game.
   void _endRound() {
-    Iterable<Tile> tiles = GameData.gridTiles(state.grid);
-    bool full = tiles.where((t) => t.value != 0).toList().length == (GameInfo.scale*GameInfo.scale);
-    bool won = tiles.where((t) => t.value == 2048).toList().isNotEmpty;
+    var oldGrid = state.grid;
+    Grid grid = [];
+    bool full = oldGrid.length >= GameInfo.maxTiles();
+    bool won = oldGrid.where((t) => t.value == 2048).toList().isNotEmpty;
     bool lost = false;
     GameStatus status = state.status;
-    List<List<Tile> > grid = state.grid;
     int bestScore = state.bestScore;
 
     if(full && !won) {
       lost = true;
 
-      for(int i = 0; i < grid.length; i++) {
-        for(int j = 0; j < grid[i].length; j++) {
-          int value = grid[i][j].value;
-          List<int> values = [];
+      oldGrid.sort(((a, b) => a.index.compareTo(b.index) ) );
 
-          //Check if there is a tile to the right
-          if(j + 1 <  grid[i].length) {
-            values.add(grid[i][j+1].value);
-          }
-          //Check if there is a tile to the left
-          if(j - 1 >= 0) {
-            values.add(grid[i][j-1].value);
-          }
-          //Check if there is a tile to the above
-          if(i+1 < grid.length) {
-            values.add(grid[i+1][j].value);
-          }
-          //Check if there is a tile to the below
-          if(i-1 >= 0) {
-            values.add(grid[i-1][j].value);
-          }
+      for (int i = 0, l = oldGrid.length; i < l; i++) {
+        Tile t = oldGrid[i];
 
-          //Found match
-          if(values.contains(value) ) {
+        var x = (i - (((i + 1) / GameInfo.scale).ceil() * GameInfo.scale - GameInfo.scale) );
+
+        //Check if left tile can be merged
+        if (x > 0 && i - 1 >= 0) {
+          var left =  oldGrid[i - 1];
+
+          if (t.value == left.value) {
             lost = false;
-            break;
           }
 
         }
+        //Check if right tile can be merged
+        if (x < 3 && i + 1 < l) {
+          var right = oldGrid[i + 1];
 
+          if (t.value == right.value) {
+            lost = false;
+          }
+
+        }
+        //Check if tile above can be merged
+        if (i - 4 >= 0) {
+          var top = oldGrid[i - 4];
+
+          if (t.value == top.value) {
+            lost = false;
+          }
+
+        }
+        //Check if tile below can be merged
+        if (i + 4 < l) {
+          var bottom = oldGrid[i + 4];
+
+          if (t.value == bottom.value) {
+            lost = false;
+          }
+
+        }
+        grid.add(t.copyWith(merged: false) );
+      }
+
+    }
+    else {
+      for(Tile t in oldGrid) {
+        grid.add(t.copyWith(merged: false) );
       }
 
     }
@@ -316,13 +302,6 @@ class BoardManager extends StateNotifier<GameData> {
 
     if(status != GameStatus.playing && state.score > bestScore) {
         bestScore = state.score;
-    }
-
-    for(var row in grid) {
-      for(Tile t in row) {
-        t.reset(value: t.value);
-      }
-
     }
 
     state = state.copyWith(grid: grid, status: status,bestScore: bestScore);

@@ -7,10 +7,8 @@ part of 'tile.dart';
 // **************************************************************************
 
 Tile _$TileFromJson(Map json) => Tile(
-      json['x'] as int,
-      json['y'] as int,
-      nextX: json['nextX'] as int?,
-      nextY: json['nextY'] as int?,
+      json['index'] as int,
+      nextIndex: json['nextIndex'] as int?,
       merged: json['merged'] as bool? ?? false,
       value: json['value'] as int? ?? 0,
       id: json['id'] ?? "",
@@ -18,10 +16,8 @@ Tile _$TileFromJson(Map json) => Tile(
 
 Map<String, dynamic> _$TileToJson(Tile instance) => <String, dynamic>{
       'id': instance.id,
-      'x': instance.x,
-      'y': instance.y,
-      'nextX': instance.nextX,
-      'nextY': instance.nextY,
+      'index': instance.index,
+      'nextIndex': instance.nextIndex,
       'value': instance.value,
       'merged': instance.merged,
     };

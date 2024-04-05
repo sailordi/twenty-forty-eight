@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:twenty_forty_eight/models/gameInfo.dart';
 
 import '../models/tile.dart';
 
@@ -6,11 +7,12 @@ part 'gameData.g.dart';
 
 enum GameStatus{init,playing,won,lost}
 
-typedef Grid = List<List<Tile> >;
+typedef Grid = List<Tile>;
+typedef Indexes = List<int>;
 
 @JsonSerializable(explicitToJson: true, anyMap: true)
 class GameData {
-  late List<List<Tile> > grid;
+  late Grid grid;
   late int score;
   late int bestScore;
   late GameStatus status;
@@ -21,9 +23,7 @@ class GameData {
   GameData.newGame(this.bestScore,this.grid) : score = 0,
                                                 status = GameStatus.playing;
 
-  static Iterable<Tile> gridTiles(Grid g) => g.expand((e) => e);
-
-  GameData copyWith({int? score,int? bestScore,List<List<Tile> >? grid,GameStatus? status}) =>
+  GameData copyWith({int? score,int? bestScore,Grid? grid,GameStatus? status}) =>
       GameData(score ?? this.score,
           bestScore ?? this.bestScore,
           grid ?? this.grid,

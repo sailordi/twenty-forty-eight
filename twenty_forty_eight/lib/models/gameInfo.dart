@@ -32,4 +32,9 @@ class GameInfo {
     height = width;
     tileSize = (width - spaceBetweenTiles * (scale + 1) ) / (scale);
   }
+
+  static int maxTiles() {
+    return scale*scale;
+  }
+
 }
